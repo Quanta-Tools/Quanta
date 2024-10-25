@@ -18,6 +18,7 @@ actor QuantaQueue {
 	// MARK: - Properties
 	private var tasks: [any QuantaTask] = []
 	private var isProcessing = false
+	private var loaded = false
 	private let defaults = UserDefaults.standard
 	private let queueKey = "tools.quanta.queue.tasks"
 	private let decoder = JSONDecoder()
@@ -48,10 +49,11 @@ actor QuantaQueue {
 		guard
 			let data = defaults.data(forKey: queueKey),
 			let taskDictionaries = try? decoder.decode([[String: Data]].self, from: data) else {
+			loaded = true
 			return
 		}
 
-		tasks = taskDictionaries.compactMap { dictionary in
+		tasks += taskDictionaries.compactMap { dictionary in
 			guard
 				let typeStringData = dictionary["type"],
 				let typeString = String(data: typeStringData, encoding: .utf8),
@@ -62,9 +64,11 @@ actor QuantaQueue {
 			}
 			return try? decoder.decode(taskType, from: taskData) as QuantaTask
 		}
+		loaded = true
 	}
 
 	private func saveTasks() {
+		if !loaded { return }
 		let taskDictionaries = tasks.map { task -> [String: Data] in
 			let typeString = String(describing: type(of: task))
 			let taskData = try? encoder.encode(task)
