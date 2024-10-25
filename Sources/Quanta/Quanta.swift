@@ -78,10 +78,57 @@ public enum Quanta {
 		log_(event: "launch")
 	}
 
+	static var device: String {
+		var systemInfo = utsname()
+		uname(&systemInfo)
+
+		// Get the machine identifier (e.g., "iPhone12,1")
+		let machineMirror = Mirror(reflecting: systemInfo.machine)
+		let identifier = machineMirror.children.reduce("") { identifier, element in
+			guard let value = element.value as? Int8, value != 0 else { return identifier }
+			return identifier + String(UnicodeScalar(UInt8(value)))
+		}
+
+		return identifier
+	}
+
+	static var os: String {
+		let os = ProcessInfo.processInfo.operatingSystemVersion
+		let major = os.majorVersion
+		let minor = os.minorVersion
+		let patch = os.patchVersion
+
+#if os(iOS)
+		return "iOS\(major).\(minor).\(patch)"
+#elseif os(macOS)
+		return "macOS\(major).\(minor).\(patch)"
+#elseif os(visionOS)
+		return "visionOS\(major).\(minor).\(patch)"
+#elseif os(watchOS)
+		return "watchOS\(major).\(minor).\(patch)"
+#elseif os(tvOS)
+		return "tvOS\(major).\(minor).\(patch)"
+#else
+		return "apple?\(major).\(minor).\(patch)"
+#endif
+	}
+
 	static func sendUserUpdate() {
 		initialize()
 
-		return
+		Task {
+			await QuantaQueue.shared.enqueue(UserUpdateTask(
+				time: Date(),
+				id: id,
+				appId: appId,
+				device: device,
+				os: os,
+				bundleId: "",
+				debugFlags: debugFlags,
+				version: "",
+				language: language
+			))
+		}
 	}
 
 	private static func stringFor(double value: Double) -> String {
