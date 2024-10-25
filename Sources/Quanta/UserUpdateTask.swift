@@ -46,14 +46,12 @@ import Foundation
 		urlString += formatter.string(from: time)
 		urlString += "/\(id)"
 		urlString += "/\(appId)"
-		urlString += "/\(device)"
-		urlString += "/\(os)"
-		urlString += "/\(bundleId)"
+		urlString += "/\(encode(device))"
+		urlString += "/\(encode(os))"
+		urlString += "/\(encode(bundleId))"
 		urlString += "/\(debugFlags)"
-		urlString += "/\(version)"
+		urlString += "/\(encode(version))"
 		urlString += "/\(language)"
-
-		print(urlString)
 
 		guard let url = URL(string: urlString) else { return false }
 		var req = URLRequest(url: url)

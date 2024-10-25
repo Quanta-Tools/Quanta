@@ -79,10 +79,20 @@ public enum Quanta {
 	}
 
 	static var device: String {
+#if os(macOS)
+		var modelIdentifier = [CChar](repeating: 0, count: 256)
+		var size = modelIdentifier.count
+		let result = sysctlbyname("hw.model", &modelIdentifier, &size, nil, 0)
+		if result == 0 {
+			let identifier = modelIdentifier.prefix(while: { $0 != 0 }).map { UInt8($0) }
+			return String(decoding: identifier, as: UTF8.self)
+		} else {
+			return "unknown-mac"
+		}
+#else
 		var systemInfo = utsname()
 		uname(&systemInfo)
 
-		// Get the machine identifier (e.g., "iPhone12,1")
 		let machineMirror = Mirror(reflecting: systemInfo.machine)
 		let identifier = machineMirror.children.reduce("") { identifier, element in
 			guard let value = element.value as? Int8, value != 0 else { return identifier }
@@ -90,7 +100,9 @@ public enum Quanta {
 		}
 
 		return identifier
+#endif
 	}
+
 
 	static var os: String {
 		let os = ProcessInfo.processInfo.operatingSystemVersion
@@ -109,8 +121,23 @@ public enum Quanta {
 #elseif os(tvOS)
 		return "tvOS\(major).\(minor).\(patch)"
 #else
-		return "apple?\(major).\(minor).\(patch)"
+		return "unknown-apple-os\(major).\(minor).\(patch)"
 #endif
+	}
+
+	static var bundleId: String {
+		Bundle.main.bundleIdentifier ?? "?"
+	}
+
+	static var version: String {
+		guard
+			let infoDictionary = Bundle.main.infoDictionary,
+			let version = infoDictionary["CFBundleShortVersionString"] as? String,
+			let build = infoDictionary["CFBundleVersion"] as? String
+		else {
+			return "?"
+		}
+		return "\(version)+\(build)"
 	}
 
 	static func sendUserUpdate() {
@@ -123,9 +150,9 @@ public enum Quanta {
 				appId: appId,
 				device: device,
 				os: os,
-				bundleId: "",
+				bundleId: bundleId,
 				debugFlags: debugFlags,
-				version: "",
+				version: version,
 				language: language
 			))
 		}
