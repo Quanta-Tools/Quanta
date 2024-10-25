@@ -10,6 +10,12 @@ import Foundation
 import QuantaObjC
 
 public enum Quanta {
+	/// Override the bundle id to avoid 50 char truncation.
+	nonisolated(unsafe) public static var bundleId: String?
+
+	/// Override the app version number to avoid 50 char truncation.
+	nonisolated(unsafe) public static var appVersion: String?
+
 	static var isSimulator: Bool {
 #if targetEnvironment(simulator)
 		return true
@@ -125,11 +131,11 @@ public enum Quanta {
 #endif
 	}
 
-	static var bundleId: String {
+	private static var systemBundleId: String {
 		Bundle.main.bundleIdentifier ?? "?"
 	}
 
-	static var version: String {
+	private static var systemAppVersion: String {
 		guard
 			let infoDictionary = Bundle.main.infoDictionary,
 			let version = infoDictionary["CFBundleShortVersionString"] as? String,
@@ -142,6 +148,19 @@ public enum Quanta {
 
 	static func sendUserUpdate() {
 		initialize()
+
+		var bundleId = bundleId ?? systemBundleId
+		if bundleId.count > 50 {
+			warn("You bundle id is too long. It should be 50 characters or less. It will be truncated to \(bundleId.prefix(50)).")
+			warn("Set Quanta.bundleId inside your app delegate to override the default and prevent this error.")
+		}
+		bundleId = "\(bundleId.prefix(50))"
+		var version = appVersion ?? systemAppVersion
+		if version.count > 50 {
+			warn("You app version is too long. It should be 50 characters or less. It will be truncated to \(version.prefix(50)).")
+			warn("Set Quanta.appVersion inside your app delegate to override the default and prevent this error.")
+		}
+		version = "\(version.prefix(50))"
 
 		Task {
 			await QuantaQueue.shared.enqueue(UserUpdateTask(
@@ -194,11 +213,11 @@ public enum Quanta {
 		initialize()
 
 		if event.count > 100 {
-			warn("Event name is too long. It should be less than 100 characters. It will be truncated.")
+			warn("Event name is too long. It should be 100 characters or less. It will be truncated.")
 		}
 		let event = "\(event.prefix(100))"
 		if addedArguments.count > 100 {
-			warn("Added arguments are too long. They should be less than 100 characters. They will be truncated.")
+			warn("Added arguments are too long. They should be 100 characters or less. They will be truncated.")
 		}
 		let addedArguments = "\(addedArguments.prefix(100))"
 		let revenue = stringFor(double: revenue)
