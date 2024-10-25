@@ -56,7 +56,8 @@ actor QuantaQueue {
 				let typeStringData = dictionary["type"],
 				let typeString = String(data: typeStringData, encoding: .utf8),
 				let taskData = dictionary["data"],
-				let taskType = NSClassFromString(typeString) as? QuantaTask.Type else {
+				let taskType = NSClassFromString("Quanta.\(typeString)") as? QuantaTask.Type
+			else {
 				return nil
 			}
 			return try? decoder.decode(taskType, from: taskData) as QuantaTask

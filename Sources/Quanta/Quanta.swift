@@ -65,7 +65,7 @@ public enum Quanta {
 		if initialized { return }
 		initialized = true
 
-		print("Quanta.load()")
+		print("Quanta loaded.")
 
 		if let previousId = UserDefaults.standard.string(forKey: "tools.quanta.id") {
 			id = previousId
@@ -134,7 +134,8 @@ public enum Quanta {
 				userId: id,
 				event: event,
 				revenue: revenue,
-				addedArguments: addedArguments
+				addedArguments: addedArguments,
+				time: Date()
 			))
 		}
 	}
@@ -145,14 +146,13 @@ public enum Quanta {
 			let data = try? Data(contentsOf: url),
 			let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any]
 		{
-
-			if let value = plist["ProjectID"] as? String {
+			if let value = plist["AppId"] as? String {
 				return value
 			}
 			warn("Quanta.plist is missing AppId value.")
-
+		} else {
+			warn("Failed to load Quanta.plist")
 		}
-		warn("Failed to load Quanta.plist")
 
 		return ""
 	}

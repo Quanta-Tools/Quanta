@@ -8,24 +8,48 @@
 
 import Foundation
 
-struct LogTask: QuantaTask {
+@objc final class LogTask: NSObject, QuantaTask {
 	let userId: String
 	let event: String
 	let revenue: String
 	let addedArguments: String
-	var time: Date = .now
+	let time: Date
+
+	init(userId: String, event: String, revenue: String, addedArguments: String, time: Date) {
+		self.userId = userId
+		self.event = event
+		self.revenue = revenue
+		self.addedArguments = addedArguments
+		self.time = time
+	}
 
 	func run() async -> Bool {
 		var urlString = "https://analytics-ingress.quanta.tools/e/"
 
-		urlString += Quanta.appId.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed)
+		let formatter = DateFormatter()
+		formatter.locale = .init(identifier: "en_US_POSIX")
+		formatter.timeZone = .init(secondsFromGMT: 0)
+		formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+
+		urlString += Quanta.appId
 		urlString += "/"
 		urlString += Quanta.id
 		urlString += "/"
-		// {app}/{user}/{time}/{event}/{revenue}/{args}
+		urlString += formatter.string(from: time)
+		urlString += "/"
+		urlString += event.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? ""
+		if revenue != "0" || addedArguments != "" {
+			urlString += "/"
+			urlString += revenue.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? ""
+		}
+		if addedArguments != "" {
+			urlString += "/"
+			urlString += addedArguments.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? ""
+		}
 
 		guard let url = URL(string: urlString) else { return false }
-		let req = URLRequest(url: url)
+		var req = URLRequest(url: url)
+		req.httpMethod = "POST"
 		var result: URLResponse
 		do {
 			result = try await URLSession.shared.data(for: req).1
