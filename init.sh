@@ -331,7 +331,8 @@ backup_project
 
 # Try to perform modifications
 if generate_plist_file && add_plist_to_project && add_package_dependency; then
-  echo "Setup complete!"
+  echo "Setup complete! If swift package manager is causing build errors, try opening Xcode, and running"
+  echo " File > Packages > Reset Package Caches."
   rm "$BACKUP_PATH"
 else
   echo "An error occurred. Rolling back changes..."
