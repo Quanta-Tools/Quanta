@@ -255,15 +255,9 @@ public enum Quanta {
 	}
 
 	static func initializeAfterDelay() {
-		if #available(iOS 13.0, *) {
-			Task.detached(priority: .background) {
-				try? await Task.sleep(nanoseconds: 3_000_000_000)
-				initialize()
-			}
-		} else {
-			DispatchQueue.global(qos: .background).asyncAfter(deadline: .now() + 3) {
-				initialize()
-			}
+		Task.detached(priority: .background) {
+			try? await Task.sleep(nanoseconds: 3_000_000_000)
+			initialize()
 		}
 	}
 
