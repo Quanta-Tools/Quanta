@@ -92,7 +92,7 @@ actor QuantaQueue {
 			// Handle exponential backoff if we've had failures
 			if failures > 0 {
 				let delay = pow(2.0, Double(failures - 1))
-				try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+				try? await Task.sleep(nanoseconds: UInt64(delay * 500_000_000))
 			}
 
 			// Always try the first task
