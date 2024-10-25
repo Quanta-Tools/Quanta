@@ -1,0 +1,3 @@
+module QuantaObjC {
+	header "QuantaShim.h"
+}
