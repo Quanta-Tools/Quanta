@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Variables
-REPO_URL="https://github.com/yourusername/yourlibrary.git"
+REPO_URL="https://github.com/Quanta-Tools/swift.git"
 PLIST_NAME="Quanta.plist"
 PLIST_PATH="./$PLIST_NAME"
 PBXPROJ_PATH=""
