@@ -9,13 +9,15 @@
 import Foundation
 
 @objc final class LogTask: NSObject, QuantaTask {
+	let appId: String
 	let userId: String
 	let event: String
 	let revenue: String
 	let addedArguments: String
 	let time: Date
 
-	init(userId: String, event: String, revenue: String, addedArguments: String, time: Date) {
+	init(appId: String, userId: String, event: String, revenue: String, addedArguments: String, time: Date) {
+		self.appId = appId
 		self.userId = userId
 		self.event = event
 		self.revenue = revenue
@@ -35,8 +37,8 @@ import Foundation
 		formatter.timeZone = .init(secondsFromGMT: 0)
 		formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
 
-		urlString += Quanta.appId
-		urlString += "/\(Quanta.id)"
+		urlString += appId
+		urlString += "/\(userId)"
 		urlString += "/\(formatter.string(from: time))"
 		urlString += "/\(encode(event))"
 		if revenue != "0" || addedArguments != "" {

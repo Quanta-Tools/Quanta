@@ -131,6 +131,7 @@ public enum Quanta {
 
 		Task {
 			await QuantaQueue.shared.enqueue(LogTask(
+				appId: appId,
 				userId: id,
 				event: event,
 				revenue: revenue,
@@ -147,6 +148,9 @@ public enum Quanta {
 			let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any]
 		{
 			if let value = plist["AppId"] as? String {
+				if let uuid = UUID(uuidString: value) {
+					return shorten(uuid: uuid)
+				}
 				return value
 			}
 			warn("Quanta.plist is missing AppId value.")
