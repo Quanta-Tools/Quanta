@@ -23,6 +23,10 @@ import Foundation
 		self.time = time
 	}
 
+	func encode(_ string: String) -> String {
+		string.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? ""
+	}
+
 	func run() async -> Bool {
 		var urlString = "https://analytics-ingress.quanta.tools/e/"
 
@@ -32,19 +36,14 @@ import Foundation
 		formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss'Z'"
 
 		urlString += Quanta.appId
-		urlString += "/"
-		urlString += Quanta.id
-		urlString += "/"
-		urlString += formatter.string(from: time)
-		urlString += "/"
-		urlString += event.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? ""
+		urlString += "/\(Quanta.id)"
+		urlString += "/\(formatter.string(from: time))"
+		urlString += "/\(encode(event))"
 		if revenue != "0" || addedArguments != "" {
-			urlString += "/"
-			urlString += revenue.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? ""
+			urlString += "/\(encode(revenue))"
 		}
 		if addedArguments != "" {
-			urlString += "/"
-			urlString += addedArguments.addingPercentEncoding(withAllowedCharacters: .urlHostAllowed) ?? ""
+			urlString += "/\(encode(addedArguments))"
 		}
 
 		guard let url = URL(string: urlString) else { return false }
