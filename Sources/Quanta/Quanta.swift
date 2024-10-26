@@ -216,10 +216,28 @@ public enum Quanta {
 			warn("Event name is too long. It should be 100 characters or less. It will be truncated.")
 		}
 		let event = "\(event.prefix(100))"
+		if event.contains("\t") {
+			warn("Event name contains tab characters. They will be replaced with spaces.")
+		}
+		if event.contains("\n") {
+			warn("Event name contains new line characters. They will be replaced with spaces.")
+		}
+		if event.contains("\r") {
+			warn("Event name contains new line (return) characters. They will be removed.")
+		}
 		if addedArguments.count > 100 {
 			warn("Added arguments are too long. They should be 100 characters or less. They will be truncated.")
 		}
 		let addedArguments = "\(addedArguments.prefix(100))"
+		if addedArguments.contains("\t") {
+			warn("Added arguments contain tab characters. They will be replaced with spaces.")
+		}
+		if addedArguments.contains("\n") {
+			warn("Added arguments contain new line characters. They will be replaced with spaces.")
+		}
+		if addedArguments.contains("\r") {
+			warn("Added arguments contain new line (return) characters. They will be removed.")
+		}
 		let revenue = stringFor(double: revenue)
 
 		Task {
