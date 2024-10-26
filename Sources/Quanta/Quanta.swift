@@ -262,7 +262,20 @@ public enum Quanta {
 		}
 	}
 
-	nonisolated(unsafe) private static var overrideAppId: String?
+	nonisolated(unsafe) private static var overrideAppId_: String?
+
+	private static var overrideAppId: String? {
+		get {
+			overrideAppId_
+		}
+		set {
+			if let uuid = UUID(uuidString: newValue ?? "") {
+				overrideAppId_ = shorten(uuid: uuid)
+			} else {
+				overrideAppId_ = newValue
+			}
+		}
+	}
 
 	static var plistAppId: String {
 		if
