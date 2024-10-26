@@ -24,6 +24,10 @@ public enum Quanta {
 		set { overrideAppId = newValue }
 	}
 
+	static var isTestFlight: Bool {
+		Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
+	}
+
 	static var isSimulator: Bool {
 #if targetEnvironment(simulator)
 		return true
@@ -47,6 +51,9 @@ public enum Quanta {
 		}
 		if isSimulator {
 			flags |= 2
+		}
+		if isTestFlight {
+			flags |= 4
 		}
 		return flags
 	}
