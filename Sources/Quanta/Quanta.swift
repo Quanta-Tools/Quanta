@@ -16,6 +16,14 @@ public enum Quanta {
 	/// Override the app version number to avoid 50 char truncation.
 	nonisolated(unsafe) public static var appVersion: String?
 
+	nonisolated(unsafe) public static var sendLaunchEvent = true
+
+	/// Manually set the appId to avoid auto-detection from Quanta.plist.
+	public static var appId: String {
+		get { overrideAppId ?? plistAppId }
+		set { overrideAppId = newValue }
+	}
+
 	static var isSimulator: Bool {
 #if targetEnvironment(simulator)
 		return true
@@ -81,7 +89,9 @@ public enum Quanta {
 		}
 
 		sendUserUpdate()
-		log_(event: "launch")
+		if sendLaunchEvent {
+			log_(event: "launch")
+		}
 	}
 
 	static var device: String {
@@ -252,7 +262,9 @@ public enum Quanta {
 		}
 	}
 
-	static var appId: String {
+	nonisolated(unsafe) private static var overrideAppId: String?
+
+	static var plistAppId: String {
 		if
 			let url = Bundle.main.url(forResource: "Quanta", withExtension: "plist"),
 			let data = try? Data(contentsOf: url),
