@@ -9,6 +9,9 @@
 import Foundation
 import QuantaObjC
 
+/// Default: load 3s after app start. Set this variable to false/f/no/n and load will be skipped.
+let loadEnvironmentVariable: String = "QUANTA_LOAD"
+
 public enum Quanta {
 	/// Override the bundle id to avoid 50 char truncation.
 	nonisolated(unsafe) public static var bundleId: String?
@@ -163,7 +166,8 @@ public enum Quanta {
 		return "\(version)+\(build)"
 	}
 
-	static func sendUserUpdate() {
+	/// Call this before sending any events. Will be called on launch unless env QUANTA\_LOAD is set to false.
+	public static func sendUserUpdate() {
 		initialize()
 
 		var bundleId = bundleId ?? systemBundleId
@@ -307,6 +311,12 @@ public enum Quanta {
 	static func initializeAfterDelay() {
 		Task.detached(priority: .background) {
 			try? await Task.sleep(nanoseconds: 3_000_000_000)
+			if
+				let loadOnStart = ProcessInfo.processInfo.environment[loadEnvironmentVariable],
+				loadOnStart.lowercased().starts(with: "f") || loadOnStart.lowercased().starts(with: "n")
+			{
+				return
+			}
 			initialize()
 		}
 	}
