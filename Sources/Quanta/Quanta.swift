@@ -92,7 +92,7 @@ public enum Quanta {
 			id = previousId
 		} else {
 			id = shorten(uuid: UUID())
-			UserDefaults.standard.set(id, forKey: "too.quanta.id")
+			UserDefaults.standard.set(id, forKey: "tools.quanta.id")
 		}
 
 		sendUserUpdate()
