@@ -136,7 +136,9 @@ public enum Quanta {
 		let minor = os.minorVersion
 		let patch = os.patchVersion
 
-#if os(iOS)
+#if targetEnvironment(macCatalyst)
+		return "macOS\(major).\(minor).\(patch)"
+#elseif os(iOS)
 		return "iOS\(major).\(minor).\(patch)"
 #elseif os(macOS)
 		return "macOS\(major).\(minor).\(patch)"
