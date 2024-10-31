@@ -115,6 +115,8 @@ public enum Quanta {
 		} else {
 			return "unknown-mac"
 		}
+#elseif targetEnvironment(simulator)
+		return "iOS-Simulator"
 #else
 		var systemInfo = utsname()
 		uname(&systemInfo)
@@ -149,7 +151,7 @@ public enum Quanta {
 #elseif os(tvOS)
 		return "tvOS\(major).\(minor).\(patch)"
 #else
-		return "unknown-apple-os\(major).\(minor).\(patch)"
+		return "appleOS\(major).\(minor).\(patch)"
 #endif
 	}
 
