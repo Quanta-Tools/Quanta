@@ -77,7 +77,14 @@ public enum Quanta {
 		}
 		set {
 			if id_ == "" {
-				id_ = newValue
+				if let uuid = UUID(uuidString: newValue) {
+					id_ = shorten(uuid: uuid)
+				} else {
+					id_ = newValue
+					if id_.count != 22 {
+						warn("The ID \(id_) does not look like a valid UUID or Quanta ID. Only use UUIDs or shortened Quanta IDs as user IDs.")
+					}
+				}
 			}
 		}
 	}
