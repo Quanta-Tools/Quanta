@@ -177,6 +177,10 @@ public enum Quanta {
 		return "\(version)+\(build)"
 	}
 
+	public static var isPreview: Bool {
+		ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+	}
+
 	/// Call this before sending any events. Will be called on launch unless env QUANTA\_LOAD is set to false.
 	public static func sendUserUpdate() {
 		initialize()
@@ -193,6 +197,8 @@ public enum Quanta {
 			warn("Set Quanta.appVersion inside your app delegate to override the default and prevent this error.")
 		}
 		version = "\(version.prefix(50))"
+
+		if isPreview { return }
 
 		Task {
 			await QuantaQueue.shared.enqueue(UserUpdateTask(
@@ -271,6 +277,8 @@ public enum Quanta {
 			warn("Added arguments contain new line (return) characters. They will be removed.")
 		}
 		let revenue = stringFor(double: revenue)
+
+		if isPreview { return }
 
 		Task {
 			await QuantaQueue.shared.enqueue(LogTask(
