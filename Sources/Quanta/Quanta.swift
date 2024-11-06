@@ -250,10 +250,10 @@ public enum Quanta {
 	private static func log_(event: String, revenue: Double = 0, addedArguments: String = "") {
 		initialize()
 
-		if event.count > 100 {
-			warn("Event name is too long. It should be 100 characters or less. It will be truncated.")
+		if event.count > 200 {
+			warn("Event name is too long. Event name + args should be 200 characters or less. It will be truncated.")
 		}
-		let event = "\(event.prefix(100))"
+		let event = "\(event.prefix(200))"
 		if event.contains("\t") {
 			warn("Event name contains tab characters. They will be replaced with spaces.")
 		}
@@ -263,10 +263,19 @@ public enum Quanta {
 		if event.contains("\r") {
 			warn("Event name contains new line (return) characters. They will be removed.")
 		}
-		if addedArguments.count > 100 {
-			warn("Added arguments are too long. They should be 100 characters or less. They will be truncated.")
-		}
-		let addedArguments = "\(addedArguments.prefix(100))"
+		let addedArguments = {
+			if event.count >= 200 {
+				if addedArguments.count > 0 {
+					warn("Added arguments are ignored. Event name is 200 characters long.")
+				}
+				return ""
+			} else {
+				if event.count + addedArguments.count > 200 {
+					warn("Added arguments are too long. Event name + args should be 200 characters or less. They will be truncated.")
+				}
+				return "\(addedArguments.prefix(200 - event.count))"
+			}
+		}()
 		if addedArguments.contains("\t") {
 			warn("Added arguments contain tab characters. They will be replaced with spaces.")
 		}
