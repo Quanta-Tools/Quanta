@@ -247,6 +247,20 @@ public enum Quanta {
 		log_(event: event, revenue: revenue, addedArguments: addedArguments)
 	}
 
+	public static func log(event: String, revenue: Double = 0, addedArguments: [String: String] = [:]) {
+		var argString = ""
+		let delim = "\u{1F}"
+
+		for key in addedArguments.keys.sorted() {
+			argString += "\(key.replacingOccurrences(of: delim, with: ""))\(delim)\(addedArguments[key]!.replacingOccurrences(of: delim, with: ""))\(delim)"
+		}
+		if argString.count > 0 {
+			argString.removeLast(delim.count)
+		}
+
+		log(event: event, revenue: revenue, addedArguments: argString)
+	}
+
 	private static func log_(event: String, revenue: Double = 0, addedArguments: String = "") {
 		initialize()
 
