@@ -241,7 +241,7 @@ public enum Quanta {
 	}
 
 	public static func log(event: String, revenue: Double = 0, addedArguments: String = "") {
-		if event == "launch" {
+		if event == "launch", sendLaunchEvent {
 			warn("The launch event is used for internal system events. It's automatically sent on app launch and should not be sent manually.")
 		}
 		log_(event: event, revenue: revenue, addedArguments: addedArguments)
