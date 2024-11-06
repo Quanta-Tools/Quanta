@@ -97,6 +97,9 @@ public enum Quanta {
 		initialized = true
 
 		print("Quanta loaded.")
+#if DEBUG
+		Task { await checkClaimed() }
+#endif
 
 		if let previousId = UserDefaults.standard.string(forKey: "tools.quanta.id") {
 			id = previousId
@@ -363,6 +366,58 @@ public enum Quanta {
 		}
 	}
 
+#if DEBUG
+	static func checkClaimed() async {
+		struct Response: Decodable {
+			let unClaimed: Bool
+		}
+
+		guard
+			let url = URL(string: "https://quanta.tools/api/claimed/\(appId)"),
+			appId != ""
+		else {
+			return
+		}
+		let request = URLRequest(url: url)
+		guard
+			let request = try? await URLSession.shared.data(for: request),
+			let response = try? JSONDecoder().decode(Response.self, from: request.0),
+			response.unClaimed
+		else {
+			return
+		}
+
+		var appId = Self.appId
+		if let uuid = UUID(uuidString: appId) {
+			appId = shorten(uuid: uuid)
+		}
+
+		print("""
+
+       :@@@               +@@+    @@@             
+      @@  @:             @@  @   @  @@            
+      @@ @@             @@  @@  @@  @             
+      @ @@        =     @@  @   @  @@      =     +
+     @@@@:@@    @@ @@   @  @=  @@ @@    @@@ @@=@@ 
+    :@@    @   @@  @@   @@@    @@@@    @@    @@   
+ @@@@@@   @@   @@@@    @@@     @@     @@@    @@   
+     @     \\@@@@ \\@@@@@  \\@@@@@ \\@@@@@  \\@@@@     
+
+""")
+		print("Welcome to Quanta! 🥳")
+		print("Your analytics are fully set up.")
+		print("See your first events coming in and attach this app to your Quanta account at")
+		print("https://quanta.tools/setup/\(appId)")
+		print()
+
+		if let longId = try? uuid(fromQuantaId: appId) {
+			print("ℹ️ Your app has the id \(appId) which is a shorter base 64 representation of the UUID \(longId). Both ids can be used interchangeably. Quanta will always refer to your app by the shorter id.")
+			print()
+		}
+
+		print("Once your app is attached to an account, this welcome message won't show up anymore. 🚮")
+	}
+#endif
 }
 
 @objc public class QuantaLoader: NSObject {
