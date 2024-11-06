@@ -10,6 +10,7 @@ import Foundation
 
 protocol QuantaTask: Codable, Sendable {
 	func run() async -> Bool
+	var time: Date { get }
 }
 
 actor QuantaQueue {
@@ -91,14 +92,16 @@ actor QuantaQueue {
 		while !tasks.isEmpty {
 			// Handle exponential backoff if we've had failures
 			if failures > 0 {
-				let delay = pow(2.0, Double(failures - 1))
+				let delay = pow(1.5, Double(failures - 1))
 				try? await Task.sleep(nanoseconds: UInt64(delay * 500_000_000))
 			}
 
 			// Always try the first task
 			let success = await tasks[0].run()
 
-			if success {
+			// 13.8 minutes = 16 failures
+			// cancel if older than 48h
+			if success || failures >= 16 || -tasks[0].time.timeIntervalSinceNow > 60 * 60 * 48 {
 				tasks.removeFirst()
 				failures = 0
 				saveTasks()
