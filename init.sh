@@ -7,6 +7,8 @@ PLIST_PATH="./$PLIST_NAME"
 PBXPROJ_PATH=""
 BACKUP_PATH=""
 
+DID_CREATE_PLIST="n"
+
 # Check and install dependencies
 check_dependencies() {
   # Check if Homebrew is installed
@@ -64,6 +66,10 @@ restore_backup() {
     cp "$BACKUP_PATH" "$PBXPROJ_PATH"
     echo "Restored from backup"
     rm "$BACKUP_PATH"
+  fi
+
+  if [ $DID_CREATE_PLIST = "y" ]; then
+    rm Quanta.plist
   fi
 }
 
@@ -191,6 +197,7 @@ generate_plist_file() {
 </plist>
 EOF
     echo "$PLIST_NAME created with UUID: $UUID"
+    DID_CREATE_PLIST="y"
   fi
 }
 
@@ -309,28 +316,221 @@ check_xcode_running() {
   fi
 }
 
+# Configuration variables for each step
+CONFIG_DEPS=true
+CONFIG_ADD_PACKAGE=true
+CONFIG_CREATE_PLIST=true
+CONFIG_ADD_PLIST=true
+CONFIG_ADD_IMPORT=true
+
+# Function to prompt user for yes/no with default value
+prompt_yes_no() {
+  local prompt="$1"
+  local default="$2"
+  local response
+
+  if [ "$default" = true ]; then
+    prompt="$prompt [Y/n]: "
+  else
+    prompt="$prompt [y/N]: "
+  fi
+
+  read -p "$prompt" response
+
+  # Convert response to lowercase
+  response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
+
+  if [ -z "$response" ]; then
+    echo "$default"
+  else
+    if [ "$response" = "y" ] || [ "$response" = "yes" ]; then
+      echo true
+    else
+      echo false
+    fi
+  fi
+}
+
+# Function to configure steps
+configure_steps() {
+  echo "Please configure which steps you'd like to execute:"
+  echo "------------------------------------------------"
+
+  # Step 0
+  CONFIG_DEPS=$(prompt_yes_no "Install homebrew and other dependencies?" true)
+
+  # Step 1: Add Swift Package
+  CONFIG_ADD_PACKAGE=$(prompt_yes_no "Add Quanta Swift package dependency?" true)
+
+  # Step 2: Create Plist
+  CONFIG_CREATE_PLIST=$(prompt_yes_no "Create Quanta.plist file?" true)
+
+  # Step 3: Add Plist to Project (only if step 2 is enabled)
+  if [ "$CONFIG_CREATE_PLIST" = true ]; then
+    CONFIG_ADD_PLIST=$(prompt_yes_no "Add Quanta.plist to Xcode project?" true)
+  else
+    CONFIG_ADD_PLIST=false
+  fi
+
+  # Step 4: Add Import
+  CONFIG_ADD_IMPORT=$(prompt_yes_no "Add 'import Quanta' to main Swift files?" true)
+
+  # Show summary
+  echo
+  echo "Configuration Summary:"
+  echo "---------------------"
+  echo "0. Install Dependencies:     $([ "$CONFIG_DEPS" = true ] && echo "Yes" || echo "No")"
+  echo "1. Add Swift Package:        $([ "$CONFIG_ADD_PACKAGE" = true ] && echo "Yes" || echo "No")"
+  echo "2. Create Quanta.plist:      $([ "$CONFIG_CREATE_PLIST" = true ] && echo "Yes" || echo "No")"
+  echo "3. Add Plist to Project:     $([ "$CONFIG_ADD_PLIST" = true ] && echo "Yes" || echo "No")"
+  echo "4. Add Import to Swift files: $([ "$CONFIG_ADD_IMPORT" = true ] && echo "Yes" || echo "No")"
+  echo
+
+  # Final confirmation
+  local proceed=$(prompt_yes_no "Proceed with these settings?" true)
+  if [ "$proceed" = false ]; then
+    echo "Setup cancelled by user"
+    exit 0
+  fi
+}
+
+start_check_deps() {
+  # Check for root permissions if needed for Homebrew installation
+  if [ "$EUID" -ne 0 ] && ! command -v brew >/dev/null 2>&1; then
+    echo "This script needs to install Homebrew, which requires sudo access."
+    sudo -v
+  fi
+
+  # Execute steps
+  echo "Checking and installing dependencies..."
+  check_dependencies
+}
+
+start_add_to_proj() {
+  echo "Starting Xcode project modification..."
+  find_xcodeproj
+  add_plist_to_project
+}
+
+# Modified main execution function
+execute_steps() {
+  local success=true
+
+  if [ "$CONFIG_DEPS" = true ]; then
+    echo "Adding Swift package dependency..."
+    start_check_deps || success=false
+  fi
+
+  if [ "$CONFIG_ADD_PACKAGE" = true ]; then
+    echo "Adding Swift package dependency..."
+    add_package_dependency || success=false
+  fi
+
+  if [ "$CONFIG_CREATE_PLIST" = true ] && [ "$success" = true ]; then
+    echo "Creating Quanta.plist..."
+    generate_plist_file || success=false
+  fi
+
+  if [ "$CONFIG_ADD_PLIST" = true ] && [ "$success" = true ]; then
+    echo "Adding plist to Xcode project..."
+    start_add_to_proj || success=false
+  fi
+
+  if [ "$CONFIG_ADD_IMPORT" = true ] && [ "$success" = true ]; then
+    echo "Adding imports to Swift files..."
+    add_import_to_swift_files || success=false
+  fi
+
+  return $([ "$success" = true ])
+}
+
+# Function to add import statement to Swift files with specific decorators
+add_import_to_swift_files() {
+  echo "Adding 'import Quanta' to Swift files with @main/@UIApplicationMain/@NSApplicationMain..."
+
+  # Find all Swift files in the project directory (excluding .build and Pods directories)
+  find . -name "*.swift" -not -path "*/\.*" -not -path "*/Pods/*" | while read -r file; do
+    # Check if file contains any of the main decorators
+    if grep -q "@main\|@UIApplicationMain\|@NSApplicationMain" "$file"; then
+      echo "Processing $file..."
+
+      # Check if import already exists
+      if ! grep -q "^import Quanta" "$file"; then
+        # Create temp file
+        temp_file=$(mktemp)
+
+        # Process the file with awk
+        awk '
+                    BEGIN { 
+                        printed = 0 
+                        in_multiline_comment = 0
+                        buffer = ""
+                    }
+                    
+                    # Detect start of multiline comment
+                    /\/\*/ { 
+                        in_multiline_comment = 1 
+                        buffer = buffer $0 "\n"
+                        next
+                    }
+                    
+                    # Inside multiline comment
+                    in_multiline_comment { 
+                        buffer = buffer $0 "\n"
+                        if ($0 ~ /\*\//) {
+                            in_multiline_comment = 0
+                            printf "%s", buffer
+                            buffer = ""
+                        }
+                        next
+                    }
+                    
+                    # Skip empty lines and single-line comments
+                    /^[ \t]*$/ || /^[ \t]*\/\// { 
+                        print $0
+                        next 
+                    }
+                    
+                    # When we hit first non-comment, non-empty line
+                    !printed {
+                        # If line starts with import, add Quanta import before it
+                        if ($0 ~ /^import/) {
+                            print "import Quanta"
+                            printed = 1
+                            print $0
+                        } else {
+                            # Otherwise add import and blank line before the content
+                            print "import Quanta\n"
+                            printed = 1
+                            print $0
+                        }
+                        next
+                    }
+                    
+                    # Print all other lines unchanged
+                    { print $0 }
+                ' "$file" >"$temp_file"
+
+        # Replace original file with modified content
+        mv "$temp_file" "$file"
+        echo "Added import Quanta to $file"
+      else
+        echo "Import Quanta already exists in $file"
+      fi
+    fi
+  done
+}
+
 # Main execution
 set -e # Exit on any error
 
+find_xcodeproj
 # Check if Xcode is running first
 check_xcode_running
-
-# Check for root permissions if needed for Homebrew installation
-if [ "$EUID" -ne 0 ] && ! command -v brew >/dev/null 2>&1; then
-  echo "This script needs to install Homebrew, which requires sudo access."
-  sudo -v
-fi
-
-# Execute steps
-echo "Checking and installing dependencies..."
-check_dependencies
-
-echo "Starting Xcode project modification..."
-find_xcodeproj
+configure_steps
 backup_project
 
-# Try to perform modifications
-if generate_plist_file && add_plist_to_project && add_package_dependency; then
+if execute_steps; then
   echo "Setup complete! If swift package manager is causing build errors, try opening Xcode, and running"
   echo " File > Packages > Reset Package Caches."
   rm "$BACKUP_PATH"
