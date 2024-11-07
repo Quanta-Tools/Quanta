@@ -243,6 +243,10 @@ public enum Quanta {
 		print("[Quanta] WARNING: \(message)")
 	}
 
+	public static func log(event: String, addedArguments: [String: String]) {
+		log(event: event, revenue: 0, addedArguments: addedArguments)
+	}
+
 	public static func log(event: String, revenue: Double = 0, addedArguments: String = "") {
 		if event == "launch", sendLaunchEvent {
 			warn("The launch event is used for internal system events. It's automatically sent on app launch and should not be sent manually.")
@@ -250,7 +254,7 @@ public enum Quanta {
 		log_(event: event, revenue: revenue, addedArguments: addedArguments)
 	}
 
-	public static func log(event: String, revenue: Double = 0, addedArguments: [String: String] = [:]) {
+	public static func log(event: String, revenue: Double, addedArguments: [String: String]) {
 		var argString = ""
 		let delim = "\u{1F}"
 

@@ -2,6 +2,17 @@
 
 Welcome to the Quanta Swift SDK! This SDK allows you to easily integrate Quanta’s features into your iOS app, helping you leverage Quanta’s tools and analytics with just a few commands.
 
+## Sending Events
+
+The most important thing to know about the Quanta SDK is how to send events. You can use the `log` method like this:
+
+```swift
+Quanta.log(event: "purchase")
+Quanta.log(event: "purchase", revenue: 1.99)
+Quanta.log(event: "purchase", addedArguments: "monthly")
+Quanta.log(event: "purchase", revenue: 1.99, addedArguments: ["period": "monthly"])
+```
+
 ## Quick Start
 
 To get started, simply run the following command in your terminal. This script will automatically set up Quanta in your Xcode project:
@@ -37,6 +48,20 @@ The installation script is designed to save time and ensure that the SDK is conf
 By automating these steps, we eliminate setup errors and allow you to focus on building with Quanta from the start.
 
 You can always add this git repository manually with Swift Package Manager. Please ensure that you create a Quanta.plist file with an AppId field present and add it to every target of your Xcode project that you intend to submit analytics events from.
+
+## Manual Installation: SPM
+
+You can always just add this repo manually by adding https://github.com/Quanta-Tools/Quanta.git as a new package to your [Xcode project](https://developer.apple.com/documentation/xcode/adding-package-dependencies-to-your-app).
+
+Adding `import Quanta` to your app's entrypoint(s) will start sending anonymous user data and launch events. The only added setup step is setting a Quanta AppId in your project. The SDK will warn you if it's not correctly set up.
+
+### Quanta.plist
+
+You can add an AppId by creating a new property list file and adding an `AppId` key with a new UUID. To create a random UUID, run the command `uuidgen` in your macOS terminal. Make sure to add this new property list to all your [Xcode targets](/add-plist.md).
+
+### Quanta.appId
+
+Alternatively, you can leverage the 3 second init delay of Quanta to set an appId programmatically before Quanta loads. You can set `Quanta.appId` before the Quanta loaded message shows up in your logs. A content view `onAppear` or an app delegate's `applicationDidFinishLaunching` works well for this.
 
 ## Get Started Today!
 
