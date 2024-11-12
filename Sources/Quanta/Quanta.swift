@@ -9,6 +9,9 @@
 import Foundation
 import QuantaObjC
 
+let unitSeparator: String = "\u{1F}"
+let recordSeparator: String = "\u{1E}"
+
 /// Default: load 3s after app start. Set this variable to false/f/no/n and load will be skipped.
 let loadEnvironmentVariable: String = "QUANTA_LOAD"
 
@@ -108,7 +111,6 @@ public enum Quanta {
 			UserDefaults.standard.set(id, forKey: "tools.quanta.id")
 		}
 
-		sendUserUpdate()
 		if sendLaunchEvent {
 			log_(event: "launch")
 		}
@@ -186,36 +188,7 @@ public enum Quanta {
 
 	/// Call this before sending any events. Will be called on launch unless env QUANTA\_LOAD is set to false.
 	public static func sendUserUpdate() {
-		initialize()
-
-		var bundleId = bundleId ?? systemBundleId
-		if bundleId.count > 50 {
-			warn("You bundle id is too long. It should be 50 characters or less. It will be truncated to \(bundleId.prefix(50)).")
-			warn("Set Quanta.bundleId inside your app delegate to override the default and prevent this error.")
-		}
-		bundleId = "\(bundleId.prefix(50))"
-		var version = appVersion ?? systemAppVersion
-		if version.count > 50 {
-			warn("You app version is too long. It should be 50 characters or less. It will be truncated to \(version.prefix(50)).")
-			warn("Set Quanta.appVersion inside your app delegate to override the default and prevent this error.")
-		}
-		version = "\(version.prefix(50))"
-
-		if isPreview { return }
-
-		Task {
-			await QuantaQueue.shared.enqueue(UserUpdateTask(
-				time: Date(),
-				id: id,
-				appId: appId,
-				device: device,
-				os: os,
-				bundleId: bundleId,
-				debugFlags: debugFlags,
-				version: version,
-				language: language
-			))
-		}
+		print("sendUserUpdate is deprecated.")
 	}
 
 	private static func stringFor(double value: Double) -> String {
@@ -239,7 +212,7 @@ public enum Quanta {
 		return String(format: "%.2f", value).replacingOccurrences(of: ".00", with: "")
 	}
 
-	private static func warn(_ message: String) {
+	static func warn(_ message: String) {
 		print("[Quanta] WARNING: \(message)")
 	}
 
@@ -256,9 +229,12 @@ public enum Quanta {
 
 	public static func log(event: String, revenue: Double, addedArguments: [String: String]) {
 		var argString = ""
-		let delim = "\u{1F}"
+		let delim = unitSeparator
 
 		for key in addedArguments.keys.sorted() {
+			if key.contains(delim) || addedArguments[key]!.contains(delim) {
+				warn("Added arguments contain unit separator chars. They will be removed.")
+			}
 			argString += "\(key.replacingOccurrences(of: delim, with: ""))\(delim)\(addedArguments[key]!.replacingOccurrences(of: delim, with: ""))\(delim)"
 		}
 		if argString.count > 0 {
@@ -275,8 +251,8 @@ public enum Quanta {
 			warn("Event name is too long. Event name + args should be 200 characters or less. It will be truncated.")
 		}
 		let event = "\(event.prefix(200))"
-		if event.contains("\t") {
-			warn("Event name contains tab characters. They will be replaced with spaces.")
+		if event.contains(recordSeparator) {
+			warn("Event name contains record separator characters. They will be removed.")
 		}
 		if event.contains("\n") {
 			warn("Event name contains new line characters. They will be replaced with spaces.")
@@ -297,8 +273,8 @@ public enum Quanta {
 				return "\(addedArguments.prefix(200 - event.count))"
 			}
 		}()
-		if addedArguments.contains("\t") {
-			warn("Added arguments contain tab characters. They will be replaced with spaces.")
+		if addedArguments.contains(recordSeparator) {
+			warn("Added arguments contain record separator characters. They will be removed.")
 		}
 		if addedArguments.contains("\n") {
 			warn("Added arguments contain new line characters. They will be replaced with spaces.")
@@ -310,10 +286,21 @@ public enum Quanta {
 
 		if isPreview { return }
 
+		let userData = UserData(
+			id: id,
+			appId: appId,
+			device: device,
+			os: os,
+			bundleId: bundleId ?? systemBundleId,
+			debugFlags: debugFlags,
+			version: appVersion ?? systemAppVersion,
+			language: language
+		)
+
 		Task {
-			await QuantaQueue.shared.enqueue(LogTask(
+			await QuantaQueue.shared.enqueue(UserLogTask(
 				appId: appId,
-				userId: id,
+				userData: userData.string,
 				event: event,
 				revenue: revenue,
 				addedArguments: addedArguments,
