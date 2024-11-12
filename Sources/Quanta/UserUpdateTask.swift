@@ -8,6 +8,53 @@
 
 import Foundation
 
+func safe(_ value: String, keepUnitSeparator: Bool = false) -> String {
+	if keepUnitSeparator {
+		return value.replacingOccurrences(of: recordSeparator, with: "")
+	}
+	return value.replacingOccurrences(of: recordSeparator, with: "").replacingOccurrences(of: unitSeparator, with: "")
+}
+
+struct UserData {
+	let id: String
+	let appId: String
+	let device: String
+	let os: String
+	let bundleId: String
+	let debugFlags: Int
+	let version: String
+	let language: String
+
+	var string: String {
+		var urlString = ""
+
+		var bundleId = self.bundleId
+		if bundleId.count > 50 {
+			Quanta.warn("You bundle id is too long. It should be 50 characters or less. It will be truncated to \(bundleId.prefix(50)).")
+			Quanta.warn("Set Quanta.bundleId inside your app delegate to override the default and prevent this error.")
+		}
+		bundleId = "\(bundleId.prefix(50))"
+		var version = self.version
+		if version.count > 50 {
+			Quanta.warn("You app version is too long. It should be 50 characters or less. It will be truncated to \(version.prefix(50)).")
+			Quanta.warn("Set Quanta.appVersion inside your app delegate to override the default and prevent this error.")
+		}
+		version = "\(version.prefix(50))"
+
+		urlString += "\(id)"
+		urlString += "\(recordSeparator)\(appId)"
+		urlString += "\(recordSeparator)\(safe(device))"
+		urlString += "\(recordSeparator)\(safe(os))"
+		urlString += "\(recordSeparator)\(safe(bundleId))"
+		urlString += "\(recordSeparator)\(debugFlags)"
+		urlString += "\(recordSeparator)\(safe(version))"
+		urlString += "\(recordSeparator)\(language)"
+
+		return urlString
+	}
+}
+
+/// deprecated
 @objc final class UserUpdateTask: NSObject, QuantaTask {
 	let time: Date
 	let id: String
