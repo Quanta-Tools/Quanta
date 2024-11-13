@@ -23,6 +23,7 @@ struct UserData {
 	let debugFlags: Int
 	let version: String
 	let language: String
+	let installDate: Int
 
 	var string: String {
 		var urlString = ""
@@ -47,6 +48,7 @@ struct UserData {
 		urlString += "\(recordSeparator)\(debugFlags)"
 		urlString += "\(recordSeparator)\(safe(version))"
 		urlString += "\(recordSeparator)\(language)"
+		urlString += "\(recordSeparator)\(installDate)"
 
 		return urlString
 	}
