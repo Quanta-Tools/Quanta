@@ -22,6 +22,9 @@ public enum Quanta {
 	/// Override the app version number to avoid 50 char truncation.
 	nonisolated(unsafe) public static var appVersion: String?
 
+	/// Override this user's app installation date.
+	nonisolated(unsafe) public static var installDate: Date?
+
 	nonisolated(unsafe) public static var sendLaunchEvent = true
 
 	/// Manually set the appId to avoid auto-detection from Quanta.plist.
@@ -293,7 +296,8 @@ public enum Quanta {
 			bundleId: bundleId ?? systemBundleId,
 			debugFlags: debugFlags,
 			version: appVersion ?? systemAppVersion,
-			language: language
+			language: language,
+			installDate: installDate_
 		)
 
 		Task {
@@ -306,6 +310,19 @@ public enum Quanta {
 				time: Date()
 			))
 		}
+	}
+
+	static var installDate_: Int {
+		if let override = installDate {
+			return Int(override.timeIntervalSince1970)
+		}
+		let int = UserDefaults.standard.integer(forKey: "tools.quanta.install")
+		if int > 0 {
+			return int
+		}
+		let now = Int(Date().timeIntervalSince1970)
+		UserDefaults.standard.set(now, forKey: "tools.quanta.install")
+		return now
 	}
 
 	nonisolated(unsafe) private static var overrideAppId_: String?
