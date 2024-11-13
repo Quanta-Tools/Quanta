@@ -288,7 +288,6 @@ public enum Quanta {
 
 		let userData = UserData(
 			id: id,
-			appId: appId,
 			device: device,
 			os: os,
 			bundleId: bundleId ?? systemBundleId,

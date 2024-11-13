@@ -17,7 +17,6 @@ func safe(_ value: String, keepUnitSeparator: Bool = false) -> String {
 
 struct UserData {
 	let id: String
-	let appId: String
 	let device: String
 	let os: String
 	let bundleId: String
@@ -42,7 +41,6 @@ struct UserData {
 		version = "\(version.prefix(50))"
 
 		urlString += "\(id)"
-		urlString += "\(recordSeparator)\(appId)"
 		urlString += "\(recordSeparator)\(safe(device))"
 		urlString += "\(recordSeparator)\(safe(os))"
 		urlString += "\(recordSeparator)\(safe(bundleId))"
