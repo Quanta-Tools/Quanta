@@ -17,15 +17,54 @@ let loadEnvironmentVariable: String = "QUANTA_LOAD"
 
 public enum Quanta {
 	/// Override the bundle id to avoid 50 char truncation.
-	nonisolated(unsafe) public static var bundleId: String?
+	nonisolated(unsafe) public static var bundleId_: String?
+
+	/// Override the bundle id to avoid 50 char truncation.
+	static var bundleId: String? {
+		get {
+			queue.sync { bundleId_ }
+		}
+		set {
+			queue.sync { bundleId_ = newValue }
+		}
+	}
 
 	/// Override the app version number to avoid 50 char truncation.
-	nonisolated(unsafe) public static var appVersion: String?
+	nonisolated(unsafe) public static var appVersion_: String?
+
+	/// Override the app version number to avoid 50 char truncation.
+	static var appVersion: String? {
+		get {
+			queue.sync { appVersion_ }
+		}
+		set {
+			queue.sync { appVersion_ = newValue }
+		}
+	}
+
+	nonisolated(unsafe) public static var sendLaunchEvent_ = true
+
+	static var sendLaunchEvent: Bool {
+		get {
+			queue.sync { sendLaunchEvent_ }
+		}
+		set {
+			queue.sync { sendLaunchEvent_ = newValue }
+		}
+	}
 
 	/// Override this user's app installation date.
-	nonisolated(unsafe) public static var installDate: Date?
+	nonisolated(unsafe) public static var installDate__: Date?
 
-	nonisolated(unsafe) public static var sendLaunchEvent = true
+	/// Override this user's app installation date.
+	static var installDate: Date? {
+		get {
+			queue.sync { installDate__ }
+		}
+		set {
+			queue.sync { installDate__ = newValue }
+		}
+	}
 
 	/// Manually set the appId to avoid auto-detection from Quanta.plist.
 	public static var appId: String {
@@ -95,8 +134,42 @@ public enum Quanta {
 		}
 	}
 
-	nonisolated(unsafe) fileprivate static var id_: String = ""
-	nonisolated(unsafe) fileprivate static var initialized = false
+	fileprivate static let queue = DispatchQueue(label: "tools.quanta.queue")
+
+	nonisolated(unsafe) fileprivate static var id__: String = ""
+
+	static var id_: String {
+		get {
+			queue.sync { id__ }
+		}
+		set {
+			queue.sync { id__ = newValue }
+		}
+	}
+
+	nonisolated(unsafe) fileprivate static var initialized_ = false
+
+	static var initialized: Bool {
+		get {
+			queue.sync { initialized_ }
+		}
+		set {
+			queue.sync { initialized_ = newValue }
+		}
+	}
+
+	static var installDate_: Int {
+		if let override = installDate {
+			return Int(override.timeIntervalSince1970)
+		}
+		let int = UserDefaults.standard.integer(forKey: "tools.quanta.install")
+		if int > 0 {
+			return int
+		}
+		let now = Int(Date().timeIntervalSince1970)
+		UserDefaults.standard.set(now, forKey: "tools.quanta.install")
+		return now
+	}
 
 	static func initialize() {
 		if initialized { return }
@@ -312,20 +385,16 @@ public enum Quanta {
 		}
 	}
 
-	static var installDate_: Int {
-		if let override = installDate {
-			return Int(override.timeIntervalSince1970)
-		}
-		let int = UserDefaults.standard.integer(forKey: "tools.quanta.install")
-		if int > 0 {
-			return int
-		}
-		let now = Int(Date().timeIntervalSince1970)
-		UserDefaults.standard.set(now, forKey: "tools.quanta.install")
-		return now
-	}
+	nonisolated(unsafe) private static var overrideAppId__: String?
 
-	nonisolated(unsafe) private static var overrideAppId_: String?
+	static var overrideAppId_: String? {
+		get {
+			queue.sync { overrideAppId__ }
+		}
+		set {
+			queue.sync { overrideAppId__ = newValue }
+		}
+	}
 
 	private static var overrideAppId: String? {
 		get {
