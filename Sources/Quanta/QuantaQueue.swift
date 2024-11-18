@@ -99,9 +99,9 @@ actor QuantaQueue {
 			// Always try the first task
 			let success = await tasks[0].run()
 
-			// 13.8 minutes = 16 failures
+			// ~4 hours = 27 failures
 			// cancel if older than 48h
-			if success || failures >= 16 || -tasks[0].time.timeIntervalSinceNow > 60 * 60 * 48 {
+			if success || failures >= 27 || -tasks[0].time.timeIntervalSinceNow > 60 * 60 * 48 {
 				tasks.removeFirst()
 				failures = 0
 				saveTasks()
