@@ -68,7 +68,14 @@ public enum Quanta {
 
 	/// Manually set the appId to avoid auto-detection from Quanta.plist.
 	public static var appId: String {
-		get { overrideAppId ?? plistAppId }
+		get {
+			#if DEBUG
+			if overrideAppId ?? plistAppId == "" {
+				warn("Quanta App ID is empty. Please check the instructions at www.quanta.tools")
+			}
+			#endif
+			return overrideAppId ?? plistAppId
+		}
 		set { overrideAppId = newValue }
 	}
 
@@ -361,6 +368,7 @@ public enum Quanta {
 		let revenue = stringFor(double: revenue)
 
 		if isPreview { return }
+		if appId.isEmpty { return }
 
 		let userData = UserData(
 			id: id,
@@ -423,7 +431,7 @@ public enum Quanta {
 			}
 			warn("Quanta.plist is missing AppId value.")
 		} else {
-			warn("Failed to load Quanta.plist")
+			warn("No Quanta.plist in bundle.")
 		}
 
 		return ""
