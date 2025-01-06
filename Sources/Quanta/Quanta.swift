@@ -392,7 +392,8 @@ public enum Quanta {
 				event: event,
 				revenue: revenue,
 				addedArguments: addedArguments,
-				time: Date()
+				time: Date(),
+				abLetters: Quanta.abLetters
 			))
 		}
 	}

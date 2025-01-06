@@ -72,14 +72,16 @@ import Foundation
 	let revenue: String
 	let addedArguments: String
 	let time: Date
+	let abLetters: String?
 
-	init(appId: String, userData: String, event: String, revenue: String, addedArguments: String, time: Date) {
+	init(appId: String, userData: String, event: String, revenue: String, addedArguments: String, time: Date, abLetters: String) {
 		self.appId = appId
 		self.userData = userData
 		self.event = event
 		self.revenue = revenue
 		self.addedArguments = addedArguments
 		self.time = time
+		self.abLetters = abLetters
 	}
 
 	func encode(_ string: String) -> String {
@@ -96,6 +98,9 @@ import Foundation
 		body += "\(recordSeparator)\(safe(revenue))"
 		body += "\(recordSeparator)\(safe(addedArguments, keepUnitSeparator: true))"
 		body += "\(recordSeparator)\(userData)"
+		if let abLetters {
+			body += "\(recordSeparator)\(abLetters)"
+		}
 
 		guard let url = URL(string: urlString) else { return false }
 		var req = URLRequest(url: url)
