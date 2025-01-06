@@ -195,8 +195,8 @@ public enum Quanta {
 		}
 
 		let abJson = UserDefaults.standard.string(forKey: "tools.quanta.ab") ?? ""
-		abNames = getAbNames(for: abJson)
 		abLetters = getAbLetters(for: abJson)
+		abDict = getAbDict(for: abJson)
 
 		if sendLaunchEvent {
 			log_(event: "launch")
