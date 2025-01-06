@@ -65,7 +65,7 @@ func getAbLetters(for abJson: String) -> String {
 }
 
 func getAbNames(for abJson: String) -> [[String]] {
-	guard let experiments = try? JSONDecoder().decode([ABExperiment].self, from: abJson.data(using: .utf8)!) else {
+	guard let experiments = try? JSONDecoder().decode([ABExperiment].self, from: abJson.data(using: .utf8) ?? .init()) else {
 		return []
 	}
 	return experiments.map { $0.name.map { $0.lowercased() } }
