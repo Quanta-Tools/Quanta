@@ -141,7 +141,7 @@ public enum Quanta {
 		}
 	}
 
-	fileprivate static let queue = DispatchQueue(label: "tools.quanta.queue")
+	static let queue = DispatchQueue(label: "tools.quanta.queue")
 
 	nonisolated(unsafe) fileprivate static var id__: String = ""
 
@@ -193,6 +193,10 @@ public enum Quanta {
 			id = shorten(uuid: UUID())
 			UserDefaults.standard.set(id, forKey: "tools.quanta.id")
 		}
+
+		let abJson = UserDefaults.standard.string(forKey: "tools.quanta.ab") ?? ""
+		abNames = getAbNames(for: abJson)
+		abLetters = getAbLetters(for: abJson)
 
 		if sendLaunchEvent {
 			log_(event: "launch")
