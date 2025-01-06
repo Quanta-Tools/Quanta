@@ -101,14 +101,23 @@ import Foundation
 		var req = URLRequest(url: url)
 		req.httpMethod = "POST"
 		req.httpBody = body.data(using: .utf8)
-		var result: URLResponse
-		do {
-			result = try await URLSession.shared.data(for: req).1
-		} catch {
+
+		if let header = UserDefaults.standard.string(forKey: "tools.quanta.ab.version") {
+			req.setValue(header, forHTTPHeaderField: "X-AB-Version")
+		}
+
+		guard let (data, result) = try? await URLSession.shared.data(for: req) else {
 			return false
+		}
+		if let responseString = try? JSONDecoder().decode(String.self, from: data), !responseString.isEmpty {
+			UserDefaults.standard.set(responseString, forKey: "tools.quanta.ab")
+			Quanta.set(abJson: responseString)
 		}
 		guard let result = result as? HTTPURLResponse else {
 			return false
+		}
+		if let header = result.value(forHTTPHeaderField: "X-AB-Version") {
+			UserDefaults.standard.set(header, forKey: "tools.quanta.ab.version")
 		}
 		return result.statusCode == 200
 	}
