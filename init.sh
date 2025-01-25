@@ -300,7 +300,7 @@ check_xcode_running() {
   if pgrep -x "Xcode" >/dev/null; then
     echo "⚠️  WARNING: Xcode is currently running! (see pgrep -x Xcode)"
     echo "Please close Xcode and run this script again."
-    echo "Do you want to continue anyway and potentially corrupt your project?"
+    echo "Do you want to continue anyway? If so, Xcode will prompt you after running this script to either reload the project file or restore the one cached in Xcode's memory. Restoring the Xcode version will overwrite the changes made by this script."
     read -p "Continue (y/N): " response
 
     # Convert response to lowercase
