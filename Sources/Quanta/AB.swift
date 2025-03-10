@@ -10,7 +10,8 @@ import Foundation
 
 extension Quanta {
 	public static func abTest(for experimentName: String) -> String {
-		abDict[experimentName.lowercased()] ?? "A"
+		Self.initialize()
+		return abDict[experimentName.lowercased()] ?? "A"
 	}
 
 	nonisolated(unsafe) static var abLetters_: String = ""
