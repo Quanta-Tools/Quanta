@@ -14,7 +14,7 @@ let package = Package(
 	products: [
 		.library(
 			name: "Quanta",
-			targets: ["Quanta"]),
+			targets: ["Quanta"])
 	],
 	targets: [
 		.target(
@@ -24,6 +24,10 @@ let package = Package(
 		.target(
 			name: "Quanta",
 			dependencies: ["QuantaObjC"]
-		)
+		),
+		.testTarget(
+			name: "QuantaTests",
+			dependencies: ["Quanta"]
+		),
 	]
 )

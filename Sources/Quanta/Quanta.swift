@@ -70,9 +70,10 @@ public enum Quanta {
 	public static var appId: String {
 		get {
 			#if DEBUG
-			if overrideAppId ?? plistAppId == "" {
-				warn("Quanta App ID is empty. Please check the instructions at www.quanta.tools")
-			}
+				if overrideAppId ?? plistAppId == "" {
+					warn(
+						"Quanta App ID is empty. Please check the instructions at www.quanta.tools")
+				}
 			#endif
 			return overrideAppId ?? plistAppId
 		}
@@ -84,19 +85,19 @@ public enum Quanta {
 	}
 
 	static var isSimulator: Bool {
-#if targetEnvironment(simulator)
-		return true
-#else
-		return false
-#endif
+		#if targetEnvironment(simulator)
+			return true
+		#else
+			return false
+		#endif
 	}
 
 	static var isDebug: Bool {
-#if DEBUG
-		return true
-#else
-		return false
-#endif
+		#if DEBUG
+			return true
+		#else
+			return false
+		#endif
 	}
 
 	static var debugFlags: Int {
@@ -134,7 +135,9 @@ public enum Quanta {
 				} else {
 					id_ = newValue
 					if id_.count != 22 {
-						warn("The ID \(id_) does not look like a valid UUID or Quanta ID. Only use UUIDs or shortened Quanta IDs as user IDs.")
+						warn(
+							"The ID \(id_) does not look like a valid UUID or Quanta ID. Only use UUIDs or shortened Quanta IDs as user IDs."
+						)
 					}
 				}
 			}
@@ -183,9 +186,9 @@ public enum Quanta {
 		initialized = true
 
 		print("Quanta loaded.")
-#if DEBUG
-		Task { await checkClaimed() }
-#endif
+		#if DEBUG
+			Task { await checkClaimed() }
+		#endif
 
 		if let previousId = UserDefaults.standard.string(forKey: "tools.quanta.id") {
 			id = previousId
@@ -204,32 +207,31 @@ public enum Quanta {
 	}
 
 	static var device: String {
-#if os(macOS)
-		var modelIdentifier = [CChar](repeating: 0, count: 256)
-		var size = modelIdentifier.count
-		let result = sysctlbyname("hw.model", &modelIdentifier, &size, nil, 0)
-		if result == 0 {
-			let identifier = modelIdentifier.prefix(while: { $0 != 0 }).map { UInt8($0) }
-			return String(decoding: identifier, as: UTF8.self)
-		} else {
-			return "unknown-mac"
-		}
-#elseif targetEnvironment(simulator)
-		return "iOS-Simulator"
-#else
-		var systemInfo = utsname()
-		uname(&systemInfo)
+		#if os(macOS)
+			var modelIdentifier = [CChar](repeating: 0, count: 256)
+			var size = modelIdentifier.count
+			let result = sysctlbyname("hw.model", &modelIdentifier, &size, nil, 0)
+			if result == 0 {
+				let identifier = modelIdentifier.prefix(while: { $0 != 0 }).map { UInt8($0) }
+				return String(decoding: identifier, as: UTF8.self)
+			} else {
+				return "unknown-mac"
+			}
+		#elseif targetEnvironment(simulator)
+			return "iOS-Simulator"
+		#else
+			var systemInfo = utsname()
+			uname(&systemInfo)
 
-		let machineMirror = Mirror(reflecting: systemInfo.machine)
-		let identifier = machineMirror.children.reduce("") { identifier, element in
-			guard let value = element.value as? Int8, value != 0 else { return identifier }
-			return identifier + String(UnicodeScalar(UInt8(value)))
-		}
+			let machineMirror = Mirror(reflecting: systemInfo.machine)
+			let identifier = machineMirror.children.reduce("") { identifier, element in
+				guard let value = element.value as? Int8, value != 0 else { return identifier }
+				return identifier + String(UnicodeScalar(UInt8(value)))
+			}
 
-		return identifier
-#endif
+			return identifier
+		#endif
 	}
-
 
 	static var os: String {
 		let os = ProcessInfo.processInfo.operatingSystemVersion
@@ -237,21 +239,21 @@ public enum Quanta {
 		let minor = os.minorVersion
 		let patch = os.patchVersion
 
-#if targetEnvironment(macCatalyst)
-		return "macOS\(major).\(minor).\(patch)"
-#elseif os(iOS)
-		return "iOS\(major).\(minor).\(patch)"
-#elseif os(macOS)
-		return "macOS\(major).\(minor).\(patch)"
-#elseif os(visionOS)
-		return "visionOS\(major).\(minor).\(patch)"
-#elseif os(watchOS)
-		return "watchOS\(major).\(minor).\(patch)"
-#elseif os(tvOS)
-		return "tvOS\(major).\(minor).\(patch)"
-#else
-		return "appleOS\(major).\(minor).\(patch)"
-#endif
+		#if targetEnvironment(macCatalyst)
+			return "macOS\(major).\(minor).\(patch)"
+		#elseif os(iOS)
+			return "iOS\(major).\(minor).\(patch)"
+		#elseif os(macOS)
+			return "macOS\(major).\(minor).\(patch)"
+		#elseif os(visionOS)
+			return "visionOS\(major).\(minor).\(patch)"
+		#elseif os(watchOS)
+			return "watchOS\(major).\(minor).\(patch)"
+		#elseif os(tvOS)
+			return "tvOS\(major).\(minor).\(patch)"
+		#else
+			return "appleOS\(major).\(minor).\(patch)"
+		#endif
 	}
 
 	private static var systemBundleId: String {
@@ -293,7 +295,9 @@ public enum Quanta {
 
 		// Check for any decimal components smaller than 0.01
 		if (value * 100).truncatingRemainder(dividingBy: 1) > 0 {
-			warn("Value \(value) contains decimal components smaller than 0.01 which will be truncated.")
+			warn(
+				"Value \(value) contains decimal components smaller than 0.01 which will be truncated."
+			)
 		}
 
 		return String(format: "%.2f", value).replacingOccurrences(of: ".00", with: "")
@@ -309,7 +313,9 @@ public enum Quanta {
 
 	public static func log(event: String, revenue: Double = 0, addedArguments: String = "") {
 		if event == "launch", sendLaunchEvent {
-			warn("The launch event is used for internal system events. It's automatically sent on app launch and should not be sent manually.")
+			warn(
+				"The launch event is used for internal system events. It's automatically sent on app launch and should not be sent manually."
+			)
 		}
 		log_(event: event, revenue: revenue, addedArguments: addedArguments)
 	}
@@ -322,7 +328,8 @@ public enum Quanta {
 			if key.contains(delim) || addedArguments[key]!.contains(delim) {
 				warn("Added arguments contain unit separator chars. They will be removed.")
 			}
-			argString += "\(key.replacingOccurrences(of: delim, with: ""))\(delim)\(addedArguments[key]!.replacingOccurrences(of: delim, with: ""))\(delim)"
+			argString +=
+				"\(key.replacingOccurrences(of: delim, with: ""))\(delim)\(addedArguments[key]!.replacingOccurrences(of: delim, with: ""))\(delim)"
 		}
 		if argString.count > 0 {
 			argString.removeLast(delim.count)
@@ -335,7 +342,9 @@ public enum Quanta {
 		initialize()
 
 		if event.count > 200 {
-			warn("Event name is too long. Event name + args should be 200 characters or less. It will be truncated.")
+			warn(
+				"Event name is too long. Event name + args should be 200 characters or less. It will be truncated."
+			)
 		}
 		let event = "\(event.prefix(200))"
 		if event.contains(recordSeparator) {
@@ -355,7 +364,9 @@ public enum Quanta {
 				return ""
 			} else {
 				if event.count + addedArguments.count > 200 {
-					warn("Added arguments are too long. Event name + args should be 200 characters or less. They will be truncated.")
+					warn(
+						"Added arguments are too long. Event name + args should be 200 characters or less. They will be truncated."
+					)
 				}
 				return "\(addedArguments.prefix(200 - event.count))"
 			}
@@ -386,15 +397,16 @@ public enum Quanta {
 		)
 
 		Task {
-			await QuantaQueue.shared.enqueue(UserLogTask(
-				appId: appId,
-				userData: userData.string,
-				event: event,
-				revenue: revenue,
-				addedArguments: addedArguments,
-				time: Date(),
-				abLetters: Quanta.abLetters
-			))
+			await QuantaQueue.shared.enqueue(
+				UserLogTask(
+					appId: appId,
+					userData: userData.string,
+					event: event,
+					revenue: revenue,
+					addedArguments: addedArguments,
+					time: Date(),
+					abLetters: Quanta.abLetters
+				))
 		}
 	}
 
@@ -423,10 +435,10 @@ public enum Quanta {
 	}
 
 	static var plistAppId: String {
-		if
-			let url = Bundle.main.url(forResource: "Quanta", withExtension: "plist"),
+		if let url = Bundle.main.url(forResource: "Quanta", withExtension: "plist"),
 			let data = try? Data(contentsOf: url),
-			let plist = try? PropertyListSerialization.propertyList(from: data, options: [], format: nil) as? [String: Any]
+			let plist = try? PropertyListSerialization.propertyList(
+				from: data, options: [], format: nil) as? [String: Any]
 		{
 			if let value = plist["AppId"] as? String {
 				if let uuid = UUID(uuidString: value) {
@@ -445,9 +457,9 @@ public enum Quanta {
 	static func initializeAfterDelay() {
 		Task.detached(priority: .background) {
 			try? await Task.sleep(nanoseconds: 3_000_000_000)
-			if
-				let loadOnStart = ProcessInfo.processInfo.environment[loadEnvironmentVariable],
-				loadOnStart.lowercased().starts(with: "f") || loadOnStart.lowercased().starts(with: "n")
+			if let loadOnStart = ProcessInfo.processInfo.environment[loadEnvironmentVariable],
+				loadOnStart.lowercased().starts(with: "f")
+					|| loadOnStart.lowercased().starts(with: "n")
 			{
 				return
 			}
@@ -455,62 +467,204 @@ public enum Quanta {
 		}
 	}
 
-#if DEBUG
-	static func checkClaimed() async {
-		struct Response: Decodable {
-			let unClaimed: Bool
-		}
+	#if DEBUG
+		static func checkClaimed() async {
+			struct Response: Decodable {
+				let unClaimed: Bool
+			}
 
-		guard
-			let url = URL(string: "https://quanta.tools/api/claimed/\(appId)"),
-			appId != ""
-		else {
-			return
-		}
-		let request = URLRequest(url: url)
-		guard
-			let request = try? await URLSession.shared.data(for: request),
-			let response = try? JSONDecoder().decode(Response.self, from: request.0),
-			response.unClaimed
-		else {
-			return
-		}
+			guard
+				let url = URL(string: "https://quanta.tools/api/claimed/\(appId)"),
+				appId != ""
+			else {
+				return
+			}
+			let request = URLRequest(url: url)
+			guard
+				let request = try? await URLSession.shared.data(for: request),
+				let response = try? JSONDecoder().decode(Response.self, from: request.0),
+				response.unClaimed
+			else {
+				return
+			}
 
-		var appId = Self.appId
-		if let uuid = UUID(uuidString: appId) {
-			appId = shorten(uuid: uuid)
-		}
+			var appId = Self.appId
+			if let uuid = UUID(uuidString: appId) {
+				appId = shorten(uuid: uuid)
+			}
 
-		print("""
+			print(
+				"""
 
-       :@@@               +@@+    @@@             
-      @@  @:             @@  @   @  @@            
-      @@ @@             @@  @@  @@  @             
-      @ @@        =     @@  @   @  @@      =     +
-     @@@@:@@    @@ @@   @  @=  @@ @@    @@@ @@=@@ 
-    :@@    @   @@  @@   @@@    @@@@    @@    @@   
- @@@@@@   @@   @@@@    @@@     @@     @@@    @@   
-     @     \\@@@@ \\@@@@@  \\@@@@@ \\@@@@@  \\@@@@     
+				       :@@@               +@@+    @@@             
+				      @@  @:             @@  @   @  @@            
+				      @@ @@             @@  @@  @@  @             
+				      @ @@        =     @@  @   @  @@      =     +
+				     @@@@:@@    @@ @@   @  @=  @@ @@    @@@ @@=@@ 
+				    :@@    @   @@  @@   @@@    @@@@    @@    @@   
+				 @@@@@@   @@   @@@@    @@@     @@     @@@    @@   
+				     @     \\@@@@ \\@@@@@  \\@@@@@ \\@@@@@  \\@@@@     
 
-""")
-		print("Welcome to Quanta! 🥳")
-		print("Your analytics are fully set up.")
-		print("See your first events coming in and attach this app to your Quanta account at")
-		print("https://quanta.tools/setup/\(appId)")
-		print()
-
-		if let longId = try? uuid(fromQuantaId: appId) {
-			print("ℹ️ Your app has the id \(appId) which is a shorter base 64 representation of the UUID \(longId). Both ids can be used interchangeably. Quanta will always refer to your app by the shorter id.")
+				""")
+			print("Welcome to Quanta! 🥳")
+			print("Your analytics are fully set up.")
+			print("See your first events coming in and attach this app to your Quanta account at")
+			print("https://quanta.tools/setup/\(appId)")
 			print()
-		}
 
-		print("Once your app is attached to an account, this welcome message won't show up anymore. 🚮")
-	}
-#endif
+			if let longId = try? uuid(fromQuantaId: appId) {
+				print(
+					"ℹ️ Your app has the id \(appId) which is a shorter base 64 representation of the UUID \(longId). Both ids can be used interchangeably. Quanta will always refer to your app by the shorter id."
+				)
+				print()
+			}
+
+			print(
+				"Once your app is attached to an account, this welcome message won't show up anymore. 🚮"
+			)
+		}
+	#endif
 }
 
 @objc public class QuantaLoader: NSObject {
 	@objc public static func initializeLibrary() {
 		Quanta.initializeAfterDelay()
+	}
+}
+
+extension Quanta {
+	/// Synchronizes the Quanta ID and installation date between standard UserDefaults and an app group's UserDefaults.
+	///
+	/// - Parameters:
+	///   - groupName: The name of the app group to synchronize with
+	public static func syncId(
+		for groupName: String
+	) {
+		syncId(for: groupName, standardDefaults: nil, groupDefaultsProvider: nil)
+	}
+
+	/// testable
+	static func syncId(
+		for groupName: String,
+		standardDefaults: UserDefaults?,
+		groupDefaultsProvider: ((String) -> UserDefaults?)?
+	) {
+		let standardDefaults = standardDefaults ?? UserDefaults.standard
+		let groupDefaults = groupDefaultsProvider?(groupName) ?? UserDefaults(suiteName: groupName)
+
+		guard let groupDefaults else {
+			warn("Could not access UserDefaults for group: \(groupName)")
+			return
+		}
+
+		// Get values from standard UserDefaults
+		let standardId = standardDefaults.string(forKey: "tools.quanta.id")
+		let standardInstallDate = standardDefaults.integer(forKey: "tools.quanta.install")
+
+		// Get values from group UserDefaults
+		let groupId = groupDefaults.string(forKey: "tools.quanta.id")
+		let groupInstallDate = groupDefaults.integer(forKey: "tools.quanta.install")
+
+		// Special case: If one has ID and other has date but not vice versa, merge them
+		if (standardId != nil && !standardId!.isEmpty) && standardInstallDate == 0
+			&& (groupId == nil || groupId!.isEmpty) && groupInstallDate > 0
+		{
+			// Standard has ID, group has date
+			standardDefaults.set(groupInstallDate, forKey: "tools.quanta.install")
+			groupDefaults.set(standardId!, forKey: "tools.quanta.id")
+			return
+		}
+
+		if (groupId != nil && !groupId!.isEmpty) && groupInstallDate == 0
+			&& (standardId == nil || standardId!.isEmpty) && standardInstallDate > 0
+		{
+			// Group has ID, standard has date
+			groupDefaults.set(standardInstallDate, forKey: "tools.quanta.install")
+			standardDefaults.set(groupId!, forKey: "tools.quanta.id")
+			// Update current id if already initialized
+			if initialized && groupId != id_ {
+				id = groupId!
+			}
+			return
+		}
+
+		// Determine which set of values to use
+		let useGroupValues: Bool = {
+			// If standard has no date, but group does, use group
+			if standardInstallDate == 0 && groupInstallDate > 0 {
+				return true
+			}
+
+			// If group has no date, but standard does, use standard
+			if groupInstallDate == 0 && standardInstallDate > 0 {
+				return false
+			}
+
+			// If standard has no ID, but group does, use group
+			if (standardId == nil || standardId?.isEmpty == true) && groupId != nil
+				&& !groupId!.isEmpty
+			{
+				return true
+			}
+
+			// If group has no ID, but standard does, use standard
+			if (groupId == nil || groupId?.isEmpty == true) && standardId != nil
+				&& !standardId!.isEmpty
+			{
+				return false
+			}
+
+			// If both have dates, use the earlier one (older installation)
+			if groupInstallDate > 0 && standardInstallDate > 0 {
+				return groupInstallDate <= standardInstallDate
+			}
+
+			// Default to using standard values if we can't determine
+			return false
+		}()
+
+		if useGroupValues {
+			// Use group values
+			if let groupId = groupId, !groupId.isEmpty {
+				standardDefaults.set(groupId, forKey: "tools.quanta.id")
+				// Update current id if already initialized
+				if initialized && groupId != id_ {
+					id_ = groupId  // Directly update id_ to bypass the setter conditions
+				}
+			}
+
+			if groupInstallDate > 0 {
+				standardDefaults.set(groupInstallDate, forKey: "tools.quanta.install")
+			}
+		} else {
+			// Use standard values
+			if let standardId = standardId, !standardId.isEmpty {
+				groupDefaults.set(standardId, forKey: "tools.quanta.id")
+			}
+
+			if standardInstallDate > 0 {
+				groupDefaults.set(standardInstallDate, forKey: "tools.quanta.install")
+			}
+		}
+
+		// Ensure both have valid values (handle case where both might be empty)
+		if standardDefaults.string(forKey: "tools.quanta.id") == nil
+			|| standardDefaults.string(forKey: "tools.quanta.id")?.isEmpty == true
+		{
+			let newId = shorten(uuid: UUID())
+			standardDefaults.set(newId, forKey: "tools.quanta.id")
+			groupDefaults.set(newId, forKey: "tools.quanta.id")
+
+			// Update current id if already initialized
+			if initialized && newId != id_ {
+				id_ = newId  // Directly update id_ to bypass the setter conditions
+			}
+		}
+
+		if standardDefaults.integer(forKey: "tools.quanta.install") == 0 {
+			let now = Int(Date().timeIntervalSince1970)
+			standardDefaults.set(now, forKey: "tools.quanta.install")
+			groupDefaults.set(now, forKey: "tools.quanta.install")
+		}
 	}
 }
