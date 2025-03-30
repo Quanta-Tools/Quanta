@@ -311,16 +311,16 @@ public enum Quanta {
 		log(event: event, revenue: 0, addedArguments: addedArguments)
 	}
 
-	public static func log(event: String, revenue: Double = 0, addedArguments: String = "") {
+	public static func log(event: String, at date: Date? = nil, revenue: Double = 0, addedArguments: String = "") {
 		if event == "launch", sendLaunchEvent {
 			warn(
 				"The launch event is used for internal system events. It's automatically sent on app launch and should not be sent manually."
 			)
 		}
-		log_(event: event, revenue: revenue, addedArguments: addedArguments)
+		log_(event: event, revenue: revenue, addedArguments: addedArguments, date: date)
 	}
 
-	public static func log(event: String, revenue: Double, addedArguments: [String: String]) {
+	public static func log(event: String, at date: Date? = nil, revenue: Double = 0, addedArguments: [String: String]) {
 		var argString = ""
 		let delim = unitSeparator
 
@@ -335,10 +335,10 @@ public enum Quanta {
 			argString.removeLast(delim.count)
 		}
 
-		log(event: event, revenue: revenue, addedArguments: argString)
+		log(event: event, at: date, revenue: revenue, addedArguments: argString)
 	}
 
-	private static func log_(event: String, revenue: Double = 0, addedArguments: String = "") {
+	private static func log_(event: String, revenue: Double = 0, addedArguments: String = "", date: Date? = nil) {
 		initialize()
 
 		if event.count > 200 {
@@ -404,7 +404,7 @@ public enum Quanta {
 					event: event,
 					revenue: revenue,
 					addedArguments: addedArguments,
-					time: Date(),
+					time: date ?? Date(),
 					abLetters: Quanta.abLetters
 				))
 		}

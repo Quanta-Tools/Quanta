@@ -39,10 +39,10 @@ func shortString(from value: Double) -> String {
 			formatter.maximumFractionDigits = min(remainingDigits, 2)
 		}
 
-		return formatter.string(from: NSNumber(value: value))?.replacingOccurrences(of: ",", with: "") ?? "\(value)"
+		return formatter.string(from: NSNumber(value: value))?.replacingOccurrences(
+			of: ",", with: "") ?? "\(value)"
 	}
 }
-
 
 #if canImport(SwiftUI)
 	import SwiftUI
@@ -60,7 +60,7 @@ func shortString(from value: Double) -> String {
 		private let persistenceKey = "tools.quanta.sessions"
 		private var persistenceTimer: Timer?
 		private let timerInterval: TimeInterval = 10.0
-		private var minimumEstimatedDuration: TimeInterval { timerInterval / 2 } // Minimum estimated duration for new sessions
+		private var minimumEstimatedDuration: TimeInterval { timerInterval / 2 }  // Minimum estimated duration for new sessions
 		private let minimumTrackableDuration: TimeInterval = 0.5  // Minimum duration to consider tracking
 
 		private init() {
@@ -93,7 +93,8 @@ func shortString(from value: Double) -> String {
 
 		/// Start a timer to periodically persist screen time data to handle crashes
 		private func startPersistenceTimer() {
-			persistenceTimer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true) {
+			persistenceTimer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true)
+			{
 				[weak self] _ in
 				self?.periodicPersistence()
 			}
@@ -155,10 +156,17 @@ func shortString(from value: Double) -> String {
 					continue
 				}
 
+				// Get the start time if available
+				let startTime = sessionDict["startTime"] as? TimeInterval
+
 				// Only send analytics if the duration is significant
 				if accumulatedTime >= minimumTrackableDuration {
 					sendAnalytics(
-						screenId: screenId, duration: accumulatedTime, arguments: argumentsDict)
+						screenId: screenId,
+						duration: accumulatedTime,
+						arguments: argumentsDict,
+						startTime: startTime
+					)
 				}
 			}
 
@@ -194,7 +202,9 @@ func shortString(from value: Double) -> String {
 
 			// Send analytics for completed session
 			if duration >= minimumTrackableDuration {
-				sendAnalytics(screenId: screenId, duration: duration, arguments: session.arguments)
+				sendAnalytics(
+					screenId: screenId, duration: duration,
+					arguments: session.arguments, startTime: session.sessionStartTime)
 			}
 
 			// Remove from active screens
@@ -230,12 +240,13 @@ func shortString(from value: Double) -> String {
 				return existingId != session.screenId
 			}
 
-			// Add the session data with minimum estimated duration
+			// Add the session data with minimum estimated duration and start time
 			let sessionDict: [String: Any] = [
 				"screenId": session.screenId,
 				"arguments": session.arguments ?? [:],
 				"accumulatedTime": minimumEstimatedDuration,  // Use estimated duration for new sessions
 				"lastUpdateTime": Date().timeIntervalSince1970,
+				"startTime": session.sessionStartTime,
 				"isEstimated": true,  // Mark this as an estimated duration
 			]
 			sessionsData.append(sessionDict)
@@ -272,6 +283,7 @@ func shortString(from value: Double) -> String {
 					"arguments": session.arguments ?? [:],
 					"accumulatedTime": durationToStore,
 					"lastUpdateTime": Date().timeIntervalSince1970,
+					"startTime": session.sessionStartTime,
 					"isEstimated": !useActualDurationOnly
 						&& currentDuration < minimumEstimatedDuration,
 				]
@@ -285,7 +297,8 @@ func shortString(from value: Double) -> String {
 
 		// Send analytics to your analytics service
 		private func sendAnalytics(
-			screenId: String, duration: TimeInterval, arguments: [String: String]?
+			screenId: String, duration: TimeInterval, arguments: [String: String]?,
+			startTime: TimeInterval? = nil
 		) {
 			// Skip extremely short sessions (likely view lifecycle issues)
 			guard duration >= minimumTrackableDuration else { return }
@@ -294,7 +307,15 @@ func shortString(from value: Double) -> String {
 			arguments["screen"] = screenId
 			arguments["seconds"] = shortString(from: duration)
 
-			Quanta.log(event: "view", addedArguments: arguments)
+			// Use provided start time if available, otherwise calculate it from now - duration
+			let eventStartTime: TimeInterval
+			if let startTime {
+				eventStartTime = startTime
+			} else {
+				eventStartTime = Date(timeIntervalSinceNow: -duration).timeIntervalSince1970
+			}
+
+			Quanta.log(event: "view", at: Date(timeIntervalSince1970: eventStartTime), addedArguments: arguments)
 		}
 	}
 
@@ -307,6 +328,7 @@ func shortString(from value: Double) -> String {
 		private(set) var startTime: Date
 		private(set) var pauseTime: Date?
 		private(set) var accumulatedTime: TimeInterval = 0
+		private(set) var sessionStartTime: TimeInterval  // Store start time as TimeInterval for analytics
 
 		var isPaused: Bool {
 			return pauseTime != nil
@@ -322,6 +344,7 @@ func shortString(from value: Double) -> String {
 			self.screenId = screenId
 			self.arguments = arguments
 			self.startTime = startTime
+			self.sessionStartTime = startTime.timeIntervalSince1970
 			self.accumulatedTime = accumulatedTime
 			if paused {
 				self.pauseTime = Date()
