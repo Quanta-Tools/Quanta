@@ -46,7 +46,7 @@ public enum Quanta {
 
 	static var sendLaunchEvent: Bool {
 		get {
-			queue.sync { sendLaunchEvent_ }
+			queue.sync { sendLaunchEvent_ && !plistNoLaunchEvent }
 		}
 		set {
 			queue.sync { sendLaunchEvent_ = newValue }
@@ -454,9 +454,41 @@ public enum Quanta {
 		return ""
 	}
 
+	static var plistNoLaunchEvent: Bool {
+		if let url = Bundle.main.url(forResource: "Quanta", withExtension: "plist"),
+			 let data = try? Data(contentsOf: url),
+			 let plist = try? PropertyListSerialization.propertyList(
+				from: data, options: [], format: nil) as? [String: Any]
+		{
+			if let value = plist["noInitOrLaunchEvent"] as? Bool, value {
+				return true
+			}
+			if let value = plist["noLaunchEvent"] as? Bool, value {
+				return true
+			}
+		}
+
+		return false
+	}
+
+	static var plistNoAutoInit: Bool {
+		if let url = Bundle.main.url(forResource: "Quanta", withExtension: "plist"),
+			 let data = try? Data(contentsOf: url),
+			 let plist = try? PropertyListSerialization.propertyList(
+				from: data, options: [], format: nil) as? [String: Any]
+		{
+			if let value = plist["noInitOrLaunchEvent"] as? Bool, value {
+				return true
+			}
+		}
+
+		return false
+	}
+
 	static func initializeAfterDelay() {
 		Task.detached(priority: .background) {
 			try? await Task.sleep(nanoseconds: 3_000_000_000)
+			if plistNoAutoInit { return }
 			if let loadOnStart = ProcessInfo.processInfo.environment[loadEnvironmentVariable],
 				loadOnStart.lowercased().starts(with: "f")
 					|| loadOnStart.lowercased().starts(with: "n")
