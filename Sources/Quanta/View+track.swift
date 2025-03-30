@@ -58,6 +58,7 @@ func shortString(from value: Double) -> String {
 		private var backgroundDate: Date?
 		private var cancellables = Set<AnyCancellable>()
 		private let persistenceKey = "tools.quanta.sessions"
+		private let backgroundKey = "tools.quanta.background"
 		private var persistenceTimer: Timer?
 		private let timerInterval: TimeInterval = 10.0
 		private var minimumEstimatedDuration: TimeInterval { timerInterval / 2 }  // Minimum estimated duration for new sessions
@@ -112,7 +113,7 @@ func shortString(from value: Double) -> String {
 
 			// Store the current background time
 			UserDefaults.standard.set(
-				backgroundDate!.timeIntervalSince1970, forKey: "app_last_background_time")
+				backgroundDate!.timeIntervalSince1970, forKey: backgroundKey)
 
 			// Pause all active sessions
 			for (screenId, _) in activeScreens {
