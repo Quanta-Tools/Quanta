@@ -55,10 +55,8 @@ func shortString(from value: Double) -> String {
 		@MainActor static let shared = ScreenTimeTracker()
 
 		private var activeScreens: [String: ScreenSession] = [:]
-		private var backgroundDate: Date?
 		private var cancellables = Set<AnyCancellable>()
 		private let persistenceKey = "tools.quanta.sessions"
-		private let backgroundKey = "tools.quanta.background"
 		private var persistenceTimer: Timer?
 		private let timerInterval: TimeInterval = 10.0
 		private var minimumEstimatedDuration: TimeInterval { timerInterval / 2 }  // Minimum estimated duration for new sessions
@@ -109,12 +107,6 @@ func shortString(from value: Double) -> String {
 		}
 
 		private func handleAppBackground() {
-			backgroundDate = Date()
-
-			// Store the current background time
-			UserDefaults.standard.set(
-				backgroundDate!.timeIntervalSince1970, forKey: backgroundKey)
-
 			// Pause all active sessions
 			for (screenId, _) in activeScreens {
 				pauseScreenView(screenId: screenId)
@@ -126,9 +118,6 @@ func shortString(from value: Double) -> String {
 		}
 
 		private func handleAppForeground() {
-			guard backgroundDate != nil else { return }
-			backgroundDate = nil
-
 			// Resume active sessions (if any)
 			for (screenId, _) in activeScreens {
 				resumeScreenView(screenId: screenId)
