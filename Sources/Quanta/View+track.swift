@@ -159,9 +159,6 @@ func shortString(from value: Double) -> String {
 					)
 				}
 			}
-
-			// Clear background timestamp after processing
-			UserDefaults.standard.removeObject(forKey: "app_last_background_time")
 		}
 
 		// Start tracking a screen view
