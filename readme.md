@@ -13,6 +13,20 @@ Quanta.log(event: "purchase", addedArguments: "monthly")
 Quanta.log(event: "purchase", revenue: 1.99, addedArguments: ["period": "monthly"])
 ```
 
+## Screen Tracking
+
+Track user screen views with the `.track()` modifier on your SwiftUI views:
+
+```swift
+SomeView().track(screen: "my screen name")
+```
+
+This automatically captures:
+
+- Screen name
+- Optional arguments you can provide
+- View time in seconds (duration user spends on screen)
+
 ## Quick Start
 
 To get started, simply run the following command in your terminal. This script will automatically set up Quanta in your Xcode project:
@@ -58,6 +72,11 @@ Adding `import Quanta` to your app's entrypoint(s) will start sending anonymous 
 ### Quanta.plist
 
 You can add an AppId by creating a new property list file and adding an `AppId` key with a new UUID. To create a random UUID, run the command `uuidgen` in your macOS terminal. Make sure to add this new property list to all your [Xcode targets](/add-plist.md).
+
+Additionally, the following configuration options are available:
+
+- `noLaunchEvent` (Boolean): When set to `true`, prevents sending the automatic `launch` event when your app starts.
+- `noInitOrLaunchEvent` (Boolean): When set to `true`, prevents sending the `launch` event and skips the automatic initialization that normally happens 3 seconds after launch.
 
 ### Quanta.appId
 
