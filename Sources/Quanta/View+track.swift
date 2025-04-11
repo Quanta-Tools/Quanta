@@ -44,6 +44,12 @@ func shortString(from value: Double) -> String {
 	}
 }
 
+#if canImport(UIKit) && canImport(SwiftUI)
+typealias Application = UIApplication
+#elseif canImport(AppKit) && canImport(SwiftUI)
+typealias Application = NSApplication
+#endif
+
 #if canImport(SwiftUI)
 	import SwiftUI
 	import Combine
@@ -74,14 +80,14 @@ func shortString(from value: Double) -> String {
 
 		private func setupNotifications() {
 			// Monitor app going to background
-			NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)
+			NotificationCenter.default.publisher(for: Application.willResignActiveNotification)
 				.sink { [weak self] _ in
 					self?.handleAppBackground()
 				}
 				.store(in: &cancellables)
 
 			// Monitor app coming to foreground
-			NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
+			NotificationCenter.default.publisher(for: Application.didBecomeActiveNotification)
 				.sink { [weak self] _ in
 					self?.handleAppForeground()
 				}
