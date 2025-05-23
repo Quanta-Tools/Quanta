@@ -99,9 +99,10 @@ typealias Application = NSApplication
 		/// Start a timer to periodically persist screen time data to handle crashes
 		private func startPersistenceTimer() {
 			persistenceTimer = Timer.scheduledTimer(withTimeInterval: timerInterval, repeats: true)
-			{
-				[weak self] _ in
-				self?.periodicPersistence()
+			{ _ in
+				Task { @MainActor in
+					Self.shared.periodicPersistence()
+				}
 			}
 			persistenceTimer?.tolerance = 2.0  // Add some tolerance to be battery-friendly
 		}
@@ -373,7 +374,7 @@ typealias Application = NSApplication
 		}
 
 		func calculateDuration() -> TimeInterval {
-			if let pauseTime = pauseTime {
+			if pauseTime != nil {
 				// If paused, just return accumulated time
 				return accumulatedTime
 			} else {
