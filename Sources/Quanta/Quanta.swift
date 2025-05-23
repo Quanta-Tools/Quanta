@@ -20,7 +20,7 @@ public enum Quanta {
 	nonisolated(unsafe) public static var bundleId_: String?
 
 	/// Override the bundle id to avoid 50 char truncation.
-	static var bundleId: String? {
+	public static var bundleId: String? {
 		get {
 			queue.sync { bundleId_ }
 		}
@@ -44,7 +44,7 @@ public enum Quanta {
 
 	nonisolated(unsafe) public static var sendLaunchEvent_ = true
 
-	static var sendLaunchEvent: Bool {
+	public static var sendLaunchEvent: Bool {
 		get {
 			queue.sync { sendLaunchEvent_ && !plistNoLaunchEvent }
 		}
