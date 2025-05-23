@@ -1,4 +1,4 @@
-![](https://img.shields.io/github/v/release/quanta-tools/quanta)
+![](https://img.shields.io/github/v/release/quanta-tools/quanta?style=flat-square)
 
 # Quanta.Tools Swift SDK
 
