@@ -1,3 +1,5 @@
+![](https://img.shields.io/github/v/release/quanta-tools/quanta)
+
 # Quanta.Tools Swift SDK
 
 Welcome to the Quanta Swift SDK! This SDK allows you to easily integrate Quanta’s features into your iOS app, helping you leverage Quanta’s tools and analytics with just a few commands.
