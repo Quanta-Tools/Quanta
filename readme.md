@@ -2,6 +2,16 @@
 
 Welcome to the Quanta Swift SDK! This SDK allows you to easily integrate Quanta’s features into your iOS app, helping you leverage Quanta’s tools and analytics with just a few commands.
 
+## Xcode Error: `Missing package product 'Quanta'`
+
+In Xcode, run
+
+1. File → Packages → Reset Package Caches
+1. **Restart Xcode**
+1. File → Packages → Resolve Package Versions
+
+The issue should be gone.
+
 ## Sending Events
 
 The most important thing to know about the Quanta SDK is how to send events. You can use the `log` method like this:
