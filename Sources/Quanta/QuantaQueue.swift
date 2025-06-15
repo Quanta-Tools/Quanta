@@ -14,7 +14,7 @@ protocol QuantaTask: Codable, Sendable {
 }
 
 actor QuantaQueue {
-	static var shared = QuantaQueue()
+	static let shared = QuantaQueue()
 
 	// MARK: - Properties
 	private var tasks: [any QuantaTask] = []
